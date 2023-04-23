@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+  "name": "quickTranslate",
+  "description": "Extension allows clients to quickly translate the given sentence into his language",
+  "version": "1.0",
+  "permissions": ["tabs","storage","https://google-translate1.p.rapidapi.com/*"],
+  "icons": {
+    "16": "images/icons/icon16.png",
+    "32": "images/icons/icon32.png",
+    "48": "images/icons/icon48.png",
+    "128": "images/icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["extension/js/contentScript.js"]
+    }
+    
+  ],
+  "browser_action": {
+    "default_title": "Translate selected text",
+    "default_popup": "extension/popup/popup.html"
+  },
+  "background":{
+    "scripts":["extension/popup/background/dataHandling.js"]
+  }
+}
