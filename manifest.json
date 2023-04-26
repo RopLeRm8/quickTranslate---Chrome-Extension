@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "quickTranslate",
-  "description": "Extension allows clients to quickly translate the given sentence into his language",
+  "description": "Translate text quickly",
   "version": "1.0",
   "permissions": ["tabs","storage","contextMenus", "activeTab", "https://google-translate1.p.rapidapi.com/*","*://*/*"],
   "icons": {

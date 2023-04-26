@@ -83,9 +83,16 @@ async function performTranslate(info) {
           q: text,
         });
         try {
-          const response = await fetch(detectUrl, detectOptions);
+          const response = await fetch(detectUrl, detectOptions).catch(
+            (err) => {
+              const errMessage = `alert("Couldn't detect the language - ", ${err.code})`;
+              chrome.tabs.executeScript(tab.id, { code: errMessage });
+            }
+          );
           const result = await response.json();
           if (result.message) {
+            const errMessage = `alert("API limit reached")`;
+            chrome.tabs.executeScript(tab.id, { code: errMessage });
             return;
           }
           translateOptions.body = new URLSearchParams({
@@ -93,7 +100,13 @@ async function performTranslate(info) {
             target: prefLang,
             source: result.data.detections[0][0].language ?? "en",
           });
-          const translatedText = await fetch(translateUrl, translateOptions);
+          const translatedText = await fetch(
+            translateUrl,
+            translateOptions
+          ).catch((err) => {
+            const errMessage = `alert("Couldn't translate - ", ${err.code})`;
+            chrome.tabs.executeScript(tab.id, { code: errMessage });
+          });
           const newText = await translatedText.json();
           console.log(newText.data.translations[0].translatedText);
           const replaceText = newText.data.translations[0].translatedText;
@@ -108,7 +121,8 @@ async function performTranslate(info) {
             `,
           });
         } catch (error) {
-          console.error(error);
+          const errMessage = `alert("Error occured")`;
+          chrome.tabs.executeScript(tab.id, { code: errMessage });
         }
       }
     }
