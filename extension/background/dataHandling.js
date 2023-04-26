@@ -12,7 +12,7 @@ const options = {
   headers: {
     "content-type": "application/octet-stream",
     "Accept-Encoding": "application/gzip",
-    "X-RapidAPI-Key": "05d240adc7msh769af2d041590acp1fcad4jsna94aa86ad4bc",
+    "X-RapidAPI-Key": "c262f1b62amshf9532fbf70b2140p166e96jsna8919dec856f",
     "X-RapidAPI-Host": "google-translate1.p.rapidapi.com",
   },
 };
@@ -21,7 +21,7 @@ const detectOptions = {
   headers: {
     "content-type": "application/x-www-form-urlencoded",
     "Accept-Encoding": "application/gzip",
-    "X-RapidAPI-Key": "05d240adc7msh769af2d041590acp1fcad4jsna94aa86ad4bc",
+    "X-RapidAPI-Key": "c262f1b62amshf9532fbf70b2140p166e96jsna8919dec856f",
     "X-RapidAPI-Host": "google-translate1.p.rapidapi.com",
   },
 };
@@ -30,7 +30,7 @@ const translateOptions = {
   headers: {
     "content-type": "application/x-www-form-urlencoded",
     "Accept-Encoding": "application/gzip",
-    "X-RapidAPI-Key": "05d240adc7msh769af2d041590acp1fcad4jsna94aa86ad4bc",
+    "X-RapidAPI-Key": "c262f1b62amshf9532fbf70b2140p166e96jsna8919dec856f",
     "X-RapidAPI-Host": "google-translate1.p.rapidapi.com",
   },
 };
@@ -64,7 +64,7 @@ chrome.runtime.onInstalled.addListener(function () {
   });
 });
 
-async function performTranslate(info, tab) {
+async function performTranslate(info) {
   const text = info.selectionText;
   let prefLang;
   await chrome.storage.sync.get("language", function (data) {
@@ -74,25 +74,43 @@ async function performTranslate(info, tab) {
       prefLang = "en";
     }
   });
-  detectOptions.body = new URLSearchParams({
-    q: text,
-  });
-  try {
-    const response = await fetch(detectUrl, detectOptions);
-    const result = await response.json();
-    console.log(result);
-    translateOptions.body = new URLSearchParams({
-      q: text,
-      target: prefLang,
-      source: result.data.detections[0][0].language,
-    });
-    const translatedText = await fetch(translateUrl, translateOptions);
-    console.log(translatedText);
-    const newContent = tab.content.replace(text, result);
-    chrome.tabs.executeScript(tab.id, {
-      code: "document.body.innerHTML = " + JSON.stringify(newContent),
-    });
-  } catch (error) {
-    console.error(error);
-  }
+  chrome.tabs.query(
+    { active: true, currentWindow: true },
+    async function (tabs) {
+      if (tabs && tabs[0]) {
+        const tab = tabs[0];
+        detectOptions.body = new URLSearchParams({
+          q: text,
+        });
+        try {
+          const response = await fetch(detectUrl, detectOptions);
+          const result = await response.json();
+          if (result.message) {
+            return;
+          }
+          translateOptions.body = new URLSearchParams({
+            q: text,
+            target: prefLang,
+            source: result.data.detections[0][0].language ?? "en",
+          });
+          const translatedText = await fetch(translateUrl, translateOptions);
+          const newText = await translatedText.json();
+          console.log(newText.data.translations[0].translatedText);
+          const replaceText = newText.data.translations[0].translatedText;
+          chrome.tabs.executeScript(tab.id, {
+            code: `
+              const textNodes = document.evaluate('//text()[contains(., "${text}")]',
+                document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+              for (let i = 0; i < textNodes.snapshotLength; i++) {
+                const node = textNodes.snapshotItem(i);
+                node.textContent = node.textContent.replace('${text}', '${replaceText}');
+              }
+            `,
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    }
+  );
 }
