@@ -22,6 +22,6 @@
     "default_popup": "extension/popup/popup.html"
   },
   "background":{
-    "scripts":["extension/background/dataHandling.js"]
+    "scripts":["extension/background/dataHandling.js","extension/background/apiData.js"]
   }
 }

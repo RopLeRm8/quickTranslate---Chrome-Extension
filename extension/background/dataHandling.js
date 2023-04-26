@@ -1,40 +1,11 @@
-const url =
-  "https://google-translate1.p.rapidapi.com/language/translate/v2/languages?target=en";
-
-const detectUrl =
-  "https://google-translate1.p.rapidapi.com/language/translate/v2/detect";
-
-const translateUrl =
-  "https://google-translate1.p.rapidapi.com/language/translate/v2";
-
-const options = {
-  method: "GET",
-  headers: {
-    "content-type": "application/octet-stream",
-    "Accept-Encoding": "application/gzip",
-    "X-RapidAPI-Key": "c262f1b62amshf9532fbf70b2140p166e96jsna8919dec856f",
-    "X-RapidAPI-Host": "google-translate1.p.rapidapi.com",
-  },
-};
-const detectOptions = {
-  method: "POST",
-  headers: {
-    "content-type": "application/x-www-form-urlencoded",
-    "Accept-Encoding": "application/gzip",
-    "X-RapidAPI-Key": "c262f1b62amshf9532fbf70b2140p166e96jsna8919dec856f",
-    "X-RapidAPI-Host": "google-translate1.p.rapidapi.com",
-  },
-};
-const translateOptions = {
-  method: "POST",
-  headers: {
-    "content-type": "application/x-www-form-urlencoded",
-    "Accept-Encoding": "application/gzip",
-    "X-RapidAPI-Key": "c262f1b62amshf9532fbf70b2140p166e96jsna8919dec856f",
-    "X-RapidAPI-Host": "google-translate1.p.rapidapi.com",
-  },
-};
-
+chrome.runtime.getBackgroundPage((backgroundPage) => {
+  const url = backgroundPage.quickTranslate.url;
+  const detectUrl = backgroundPage.quickTranslate.detectUrl;
+  const translateUrl = backgroundPage.quickTranslate.translateUrl;
+  const options = backgroundPage.quickTranslate.options;
+  const detectOptions = backgroundPage.quickTranslate.detectOptions;
+  const translateOptions = backgroundPage.quickTranslate.translateOptions;
+});
 function getLangs() {
   return new Promise((resolve, _) => {
     fetch(url, options)
@@ -86,13 +57,13 @@ async function performTranslate(info) {
           const response = await fetch(detectUrl, detectOptions).catch(
             (err) => {
               const errMessage = `alert("Couldn't detect the language - ", ${err.code})`;
-              chrome.tabs.executeScript(tab.id, { code: errMessage });
+              errorHandler(tab.id, errMessage);
             }
           );
           const result = await response.json();
           if (result.message) {
             const errMessage = `alert("API limit reached")`;
-            chrome.tabs.executeScript(tab.id, { code: errMessage });
+            errorHandler(tab.id, errMessage);
             return;
           }
           translateOptions.body = new URLSearchParams({
@@ -105,10 +76,9 @@ async function performTranslate(info) {
             translateOptions
           ).catch((err) => {
             const errMessage = `alert("Couldn't translate - ", ${err.code})`;
-            chrome.tabs.executeScript(tab.id, { code: errMessage });
+            errorHandler(tab.id, errMessage);
           });
           const newText = await translatedText.json();
-          console.log(newText.data.translations[0].translatedText);
           const replaceText = newText.data.translations[0].translatedText;
           chrome.tabs.executeScript(tab.id, {
             code: `
@@ -128,3 +98,7 @@ async function performTranslate(info) {
     }
   );
 }
+
+const errorHandler = (tabid, err) => {
+  chrome.tabs.executeScript(tabid, { code: err });
+};
