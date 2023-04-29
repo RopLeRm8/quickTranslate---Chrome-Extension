@@ -7,7 +7,6 @@ import {
 const selectLang = document.querySelector(".lang");
 const errorElem = document.querySelector(".error");
 const loadingElem = document.querySelector(".loading");
-
 document.addEventListener("DOMContentLoaded", async () => {
   loadingElem.textContent = "Loading...";
   selectLang.style.display = "none";

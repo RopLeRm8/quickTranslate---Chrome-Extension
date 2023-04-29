@@ -13,15 +13,20 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["extension/script/main.js"]
+      "js": ["extension/script/main.js"],
+      "type": "module" 
     }
-    
   ],
   "browser_action": {
     "default_title": "Translate selected text",
     "default_popup": "extension/popup/popup.html"
   },
   "background":{
-    "scripts":["extension/background/dataHandling.js","extension/background/apiData.js"]
+    "scripts":["extension/background/dataHandling.js","extension/background/apiData.js"],
+    "type":"module"
+  },
+  "env": {
+    "firebaseFunctionUrl": "https://us-central1-extension-b5125.cloudfunctions.net/getAPIKey"
   }
+
 }

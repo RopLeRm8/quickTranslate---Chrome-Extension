@@ -1,0 +1,12 @@
+{
+  "name": "googleExtension",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/RopLeRm8/quickTranslate---Chrome-Extension.git",
+  "author": "RopLeRm8 <roplerm8@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "firebase-admin": "^11.7.0",
+    "firebase-tools": "^11.29.0"
+  }
+}
