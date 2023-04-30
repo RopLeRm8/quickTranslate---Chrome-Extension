@@ -1,12 +1,46 @@
-chrome.runtime.getBackgroundPage((backgroundPage) => {
-  const url = backgroundPage.quickTranslate.url;
-  const detectUrl = backgroundPage.quickTranslate.detectUrl;
-  const translateUrl = backgroundPage.quickTranslate.translateUrl;
-  const options = backgroundPage.quickTranslate.options;
-  const detectOptions = backgroundPage.quickTranslate.detectOptions;
-  const translateOptions = backgroundPage.quickTranslate.translateOptions;
-});
-function getLangs() {
+const url =
+  "https://google-translate1.p.rapidapi.com/language/translate/v2/languages?target=en";
+
+const detectUrl =
+  "https://google-translate1.p.rapidapi.com/language/translate/v2/detect";
+
+const translateUrl =
+  "https://google-translate1.p.rapidapi.com/language/translate/v2";
+const CONTTYPE = "application/octet-stream";
+const ACCEPTCODE = "application/gzip";
+const HOST = "google-translate1.p.rapidapi.com";
+
+const options = {};
+const detectOptions = {};
+const translateOptions = {};
+
+const setUpOptions = (data) => {
+  options.method = "GET";
+  options.headers = {
+    "content-type": CONTTYPE,
+    "Accept-Encoding": ACCEPTCODE,
+    "X-RapidAPI-Key": data,
+    "X-RapidAPI-Host": HOST,
+  };
+
+  detectOptions.method = "POST";
+  detectOptions.headers = {
+    "content-type": CONTTYPE,
+    "Accept-Encoding": ACCEPTCODE,
+    "X-RapidAPI-Key": data,
+    "X-RapidAPI-Host": HOST,
+  };
+
+  translateOptions.method = "POST";
+  translateOptions.headers = {
+    "content-type": CONTTYPE,
+    "Accept-Encoding": ACCEPTCODE,
+    "X-RapidAPI-Key": data,
+    "X-RapidAPI-Host": HOST,
+  };
+};
+
+const getLangs = () => {
   return new Promise((resolve, _) => {
     fetch(url, options)
       .then((response) => response.json())
@@ -18,32 +52,13 @@ function getLangs() {
         resolve([]);
       });
   });
-}
-
-chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
-  if (request.type === "getLangs") {
-    getLangs().then((languages) => sendResponse(languages));
-    return true;
-  }
-});
-// Extension
-chrome.runtime.onInstalled.addListener(function () {
-  chrome.contextMenus.create({
-    title: "Quick translate",
-    contexts: ["selection"],
-    onclick: performTranslate,
-  });
-});
+};
 
 async function performTranslate(info) {
   const text = info.selectionText;
   let prefLang;
   await chrome.storage.sync.get("language", function (data) {
-    if (data.language) {
-      prefLang = data.language;
-    } else {
-      prefLang = "en";
-    }
+    prefLang = data.language ?? "en";
   });
   chrome.tabs.query(
     { active: true, currentWindow: true },
@@ -102,3 +117,24 @@ async function performTranslate(info) {
 const errorHandler = (tabid, err) => {
   chrome.tabs.executeScript(tabid, { code: err });
 };
+chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
+  if (request.type === "getLangs") {
+    getLangs().then((languages) => sendResponse(languages));
+    return true;
+  }
+});
+
+chrome.runtime.onInstalled.addListener(function () {
+  (async function () {
+    const manifest = chrome.runtime.getManifest();
+    const response = await fetch(manifest.env.firebaseFunctionUrl);
+    const data = await response.text();
+    await setUpOptions(data);
+  })();
+
+  chrome.contextMenus.create({
+    title: "Quick translate",
+    contexts: ["selection"],
+    onclick: performTranslate,
+  });
+});

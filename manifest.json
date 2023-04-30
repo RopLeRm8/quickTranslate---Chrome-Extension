@@ -22,7 +22,7 @@
     "default_popup": "extension/popup/popup.html"
   },
   "background":{
-    "scripts":["extension/background/dataHandling.js","extension/background/apiData.js"],
+    "scripts":["extension/background/dataHandling.js"],
     "type":"module"
   },
   "env": {
