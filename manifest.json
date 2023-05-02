@@ -3,7 +3,7 @@
   "name": "quickTranslate",
   "description": "Translate text quickly",
   "version": "1.0",
-  "permissions": ["tabs","storage","contextMenus", "activeTab", "https://google-translate1.p.rapidapi.com/*","*://*/*"],
+  "permissions": ["tabs","storage","contextMenus", "activeTab","identity","*://*/*"],
   "icons": {
     "16": "images/icons/icon16.png",
     "32": "images/icons/icon32.png",
@@ -14,19 +14,25 @@
     {
       "matches": ["<all_urls>"],
       "js": ["extension/script/main.js"],
-      "type": "module" 
+      "type": "module"
     }
   ],
   "browser_action": {
-    "default_title": "Translate selected text",
-    "default_popup": "extension/popup/popup.html"
+    "default_popup": "extension/popup/popup.html",
+    "default_title": "Translate text quickly"
   },
   "background":{
-    "scripts":["extension/background/dataHandling.js"],
+    "scripts": ["extension/background/dataHandling.js"],
     "type":"module"
   },
   "env": {
     "firebaseFunctionUrl": "https://us-central1-extension-b5125.cloudfunctions.net/getAPIKey"
-  }
+  },
+  "oauth2": {
+    "client_id": "999895520308-gqfttlt9u5a99c5ld216brpaoapglleh.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ]
+}
 
 }
